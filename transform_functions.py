@@ -173,6 +173,7 @@ def fun_final_base(DF_Original):
     X_Final = XD_Train_Final(X_sc, X_sc_PCA_Pol)
 
     Orden_Columnas_loaded = np.loadtxt("/opt/ml/code/Listas_mod/Orden_Columnas.csv", delimiter=";", dtype=str, usecols=[0], encoding="utf-8")
+    
     XDF_Final = X_Final[Orden_Columnas_loaded]
 
     return X_red, X_sc, XDF_Final
@@ -186,7 +187,6 @@ def XD_Train_Final(XDF_sc, XDF_sc_PCA_Pol):
     
     # Identificar columnas repetidas
     common_columns = XDF_sc.columns.intersection(XDF_sc_PCA_Pol.columns)
-    
     # Eliminar las columnas duplicadas de XTrain_sc_PCA_Pol
     XDF_sc_PCA_Pol_clean = XDF_sc_PCA_Pol.drop(columns=common_columns)
     
@@ -318,7 +318,10 @@ def transf_PCA_POL(XDF_sc):
         VarSel_PCA_F_loaded = np.array([VarSel_PCA_F_loaded])
     
     selvars_pol_loaded = np.loadtxt("/opt/ml/code/Listas_mod/selvars_pol.csv", delimiter=",", dtype=str)
-
+    selvars_pol_loaded = list(selvars_pol_loaded)  # Convierte el array en lista
+    selvars_pol_loaded.extend(['REV_OUT_INFORMATION_M-1', 'AGEING REV_TOTAL', 'REV_OUT_INFORMATION QTY_RCHG', 'REV_OUT_INFORMATION REV_OUT_COMMUNICATION', 'MSG_OUT_M-1'
+                              ])
+    
     pca_loaded = joblib.load("/opt/ml/code/Listas_mod/pca_model.pkl")
     pf_loaded = joblib.load("/opt/ml/code/Listas_mod/polyFeature_model.pkl")
 
@@ -339,7 +342,11 @@ def transf_PCA_POL(XDF_sc):
     
     X_pol = pf_loaded.transform(XDF_sc_num)
     XDF_pol = pd.DataFrame(X_pol, columns=pf.get_feature_names_out())
+    #print(f'Las columnas del XDF_pol son:\n{list(XDF_pol.columns)}')
     XDF_pol = XDF_pol[selvars_pol_loaded]
+    XDF_pol = XDF_pol.rename(columns={'MSG_OUT_M-1': 'MSG_OUT_M-3',
+    'REV_OUT_INFORMATION_M-1': 'REV_OUT_INFORMATION_M-3'})
+
 
     XDF_Final = pd.concat([XDF_PCA, XDF_pol], axis=1)
     
